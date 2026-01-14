@@ -13,6 +13,9 @@ xFieldCenter = fieldWidth / 2
 yFieldCenter = fieldHeight / 2
 isCircleTurn = False
 
+CROSS = "Cross"
+CIRCLE = "Circle"
+
 screen.fill("beige")
 borderThickness = 5
 
@@ -85,20 +88,20 @@ def check_win_condition():
         [fields[i][2 - i] for i in range(3)],
     ]
 
-    if is_symbol_winning(lines, "Cross"):
+    if is_symbol_winning(lines, CROSS):
         print("Cross Wins")
         return True
-    if is_symbol_winning(lines, "Circle"):
+    if is_symbol_winning(lines, CIRCLE):
         print("Circle Wins")
         return True
     
     return False
 
 def is_symbol_winning(lines, symbol):
-    if "Circle" in symbol:
+    if CIRCLE in symbol:
         if any(all(cell.isCircle for cell in line) for line in lines):
             return True
-    if "Cross" in symbol:
+    if CROSS in symbol:
         if any(all(cell.isCross for cell in line) for line in lines):
             return True
 

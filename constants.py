@@ -1,0 +1,3 @@
+CROSS = "Cross"
+CIRCLE = "Circle"
+BORDERTHICKNESS = 5

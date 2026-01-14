@@ -4,6 +4,6 @@ from dataclasses import dataclass
 class Field:
         xCenterPoint: int = 0
         yCenterPoint: int = 0
-        filled: bool = False
+        isFilled: bool = False
         isCircle: bool = False
         isCross: bool = False

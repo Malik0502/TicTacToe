@@ -6,3 +6,4 @@ class Field:
         yCenterPoint: int = 0
         filled: bool = False
         isCircle: bool = False
+        isCross: bool = False

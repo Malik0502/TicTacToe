@@ -3,21 +3,27 @@ import numpy as np
 from field import Field
 
 pygame.init()
+pygame.font.init()
+
+winningTextFont = pygame.font.SysFont(name="",size=90, bold=True)
+restartTextFont = pygame.font.SysFont(name="", size=30)
 
 screen = pygame.display.set_mode((512, 512))
-screenWidth = screen.get_width()
-screenHeight = screenWidth = screen.get_height()
-fieldHeight = screenHeight / 3
-fieldWidth = screenWidth / 3
-xFieldCenter = fieldWidth / 2
-yFieldCenter = fieldHeight / 2
+SCREENWIDTH = screen.get_width()
+SCREENHEIGHT = screen.get_height()
+FIELDHEIGHT = SCREENHEIGHT / 3
+FIELDWIDTH = SCREENWIDTH / 3
+XFIELDCENTER = FIELDWIDTH / 2
+YFIELDCENTER = FIELDHEIGHT / 2
 isCircleTurn = False
+isGameOver = False
+winningText = ""
 
 CROSS = "Cross"
 CIRCLE = "Circle"
 
 screen.fill("beige")
-borderThickness = 5
+BORDERTHICKNESS = 5
 
 clock = pygame.time.Clock()
 running = True
@@ -26,15 +32,15 @@ def calculate_center_fields():
     centerPoints: list[list[Field]] = []
 
     for col in range(3):
-        y = yFieldCenter + ((col) * fieldHeight)
+        y = YFIELDCENTER + ((col) * FIELDHEIGHT)
         rowList: list[Field] = []
         for row in range(3):
-            x = xFieldCenter + ((row) * fieldWidth)
+            x = XFIELDCENTER + ((row) * FIELDWIDTH)
             field = Field(int(x), int(y), False, False)
             rowList.append(field)
         centerPoints.append(rowList)
-        x = xFieldCenter
-        y = yFieldCenter
+        x = XFIELDCENTER
+        y = YFIELDCENTER
 
     return centerPoints
 
@@ -42,24 +48,32 @@ fields = calculate_center_fields()
 
 def render_playing_field():
     for i in range(2):
-        border = pygame.Rect(0, (fieldHeight) * (i + 1) - borderThickness, screenWidth, borderThickness)
+        border = pygame.Rect(0, (FIELDHEIGHT) * (i + 1) - BORDERTHICKNESS, SCREENWIDTH, BORDERTHICKNESS)
         pygame.draw.rect(screen, "white", border)
         
-        border = pygame.Rect(fieldHeight * (i + 1) - borderThickness, 0, borderThickness, screenHeight)
+        border = pygame.Rect(FIELDHEIGHT * (i + 1) - BORDERTHICKNESS, 0, BORDERTHICKNESS, SCREENHEIGHT)
         pygame.draw.rect(screen, "white", border)
 
-    pygame.display.flip()
-
 def render_circle(field: Field):
-    pygame.draw.circle(screen, "blue", (int(field.xCenterPoint), int(field.yCenterPoint)), int(fieldWidth / 4), 5)
+    pygame.draw.circle(screen, "blue", (int(field.xCenterPoint), int(field.yCenterPoint)), int(FIELDWIDTH / 4), 5)
     pygame.display.flip()
 
 def render_cross(field: Field):
-    pygame.draw.line(screen, "red", (int(field.xCenterPoint - xFieldCenter / 2), int(field.yCenterPoint - yFieldCenter / 2)),
-                        (int(field.xCenterPoint + xFieldCenter / 2), int(field.yCenterPoint + yFieldCenter / 2)), 5)
-    pygame.draw.line(screen, "red", (int(field.xCenterPoint + xFieldCenter / 2), int(field.yCenterPoint - yFieldCenter / 2)),
-                        (int(field.xCenterPoint - xFieldCenter / 2), int(field.yCenterPoint + yFieldCenter / 2)), 5)
+    pygame.draw.line(screen, "red", (int(field.xCenterPoint - XFIELDCENTER / 2), int(field.yCenterPoint - YFIELDCENTER / 2)),
+                        (int(field.xCenterPoint + XFIELDCENTER / 2), int(field.yCenterPoint + YFIELDCENTER / 2)), 5)
+    pygame.draw.line(screen, "red", (int(field.xCenterPoint + XFIELDCENTER / 2), int(field.yCenterPoint - YFIELDCENTER / 2)),
+                        (int(field.xCenterPoint - XFIELDCENTER / 2), int(field.yCenterPoint + YFIELDCENTER / 2)), 5)
     pygame.display.flip()
+
+def render_win_title():
+    restartText = "Press Space to restart the Game"
+    winTitleSurface = winningTextFont.render(winningText, False, (0, 0, 0))
+    restartTitleSurface = restartTextFont.render(restartText, False, (0, 0, 0))
+    winTitleRect = winTitleSurface.get_rect(center=(SCREENWIDTH / 2, SCREENHEIGHT / 2))
+    restartTitleRect = restartTitleSurface.get_rect(center=(SCREENWIDTH / 2, SCREENHEIGHT / 2 + restartTextFont.size(restartText)[1] * 3))
+    screen.blit(winTitleSurface, winTitleRect)
+    screen.blit(restartTitleSurface, restartTitleRect)
+
 
 def calculate_nearest_field():
     mousePos = pygame.mouse.get_pos()
@@ -76,6 +90,8 @@ def calculate_nearest_field():
     return nearestField
 
 def check_win_condition():
+    global isGameOver
+    global winningText
     # rows
     lines = list(fields)
 
@@ -89,10 +105,12 @@ def check_win_condition():
     ]
 
     if is_symbol_winning(lines, CROSS):
-        print("Cross Wins")
+        winningText = "Cross Wins"
+        isGameOver = True
         return True
     if is_symbol_winning(lines, CIRCLE):
-        print("Circle Wins")
+        winningText = "Circle Wins"
+        isGameOver = True
         return True
     
     return False
@@ -122,15 +140,32 @@ def click_selected_field():
     
     check_win_condition()
 
+def reset_game():
+    global fields, isCircleTurn, isGameOver, winningText
+    fields = calculate_center_fields()
+    isCircleTurn = False
+    isGameOver = False
+    winningText = ""
+    screen.fill("beige")
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            click_selected_field()
+            if not isGameOver:
+                click_selected_field()
+        if event.type == pygame.KEYDOWN:
+            if isGameOver and event.key == pygame.K_SPACE:
+                reset_game()
 
-    render_playing_field()
+    if isGameOver and winningText:
+        render_win_title()
+
+    if not isGameOver:
+        render_playing_field()
+
+    pygame.display.flip()
 
     clock.tick(60)
 

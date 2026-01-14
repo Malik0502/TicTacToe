@@ -122,7 +122,8 @@ def reset_game():
     winningText = ""
     screen.fill("beige")
 
-while running:
+def get_events():
+    global running
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -132,6 +133,9 @@ while running:
         if event.type == pygame.KEYDOWN:
             if isGameOver and event.key == pygame.K_SPACE:
                 reset_game()
+
+while running:
+    get_events()
 
     if isGameOver and renderer.winningText:
         renderer.render_win_title()
